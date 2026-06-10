@@ -1,0 +1,114 @@
+@using DentalBusinessCenter.Models
+@model List<Patient>
+@{
+    ViewData["Title"] = "Patient Registry";
+    var doctors = ViewBag.Doctors as List<Doctor>;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="fw-bold mb-0"><i class="bi bi-people me-2 text-primary"></i>Patient Registry</h4>
+    <a asp-action="Create" class="btn btn-primary"><i class="bi bi-person-plus me-1"></i>Add New Patient</a>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-4">
+                <input type="text" name="search" value="@ViewBag.Search" class="form-control form-control-sm" placeholder="Search by name, PRS#, mobile..." />
+            </div>
+            <div class="col-md-2">
+                <select name="category" class="form-select form-select-sm">
+                    <option value="">All Categories</option>
+                    @foreach (var cat in new[] { "Regular", "VIP", "Pedo", "OR", "Hygienist" })
+                    {
+                        <option value="@cat" selected="@(ViewBag.Category == cat ? "selected" : null)">@cat</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-center gap-2">
+                <div class="form-check mb-0">
+                    <input class="form-check-input" type="checkbox" name="nonPaymentOnly" value="true" id="npCheck" @(ViewBag.NonPaymentOnly == true ? "checked" : "") />
+                    <label class="form-check-label small" for="npCheck">Non-Payment Only</label>
+                </div>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-search me-1"></i>Search</button>
+                <a asp-action="Index" class="btn btn-outline-secondary btn-sm">Clear</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <small class="text-muted">Showing @Model.Count of @ViewBag.Total patients</small>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>PRS#</th>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Gender</th>
+                    <th>Mobile</th>
+                    <th>Assigned Doctor</th>
+                    <th>First Visit</th>
+                    <th>Flags</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var p in Model)
+                {
+                    var catBadge = p.Category switch {
+                        "VIP" => "bg-warning text-dark",
+                        "OR" => "bg-danger",
+                        "Pedo" => "bg-info text-dark",
+                        "Hygienist" => "bg-success",
+                        _ => "bg-secondary"
+                    };
+                    var assignedDoc = p.AssignedDoctorIds.Split(',').FirstOrDefault();
+                    var doc = doctors?.FirstOrDefault(d => d.Id.ToString() == assignedDoc);
+                    <tr>
+                        <td class="small fw-semibold text-primary">@p.PrsNumber</td>
+                        <td>
+                            <div class="fw-semibold small">@p.FullNameEn</div>
+                            <div class="text-muted" style="font-size:0.75rem;" dir="rtl">@p.FullNameAr</div>
+                        </td>
+                        <td><span class="badge @catBadge">@p.Category</span></td>
+                        <td class="small">@p.Gender</td>
+                        <td class="small">@p.Mobile</td>
+                        <td class="small">@(doc?.FullName ?? "—")</td>
+                        <td class="small">@p.DateOfFirstVisit.ToString("dd MMM yyyy")</td>
+                        <td>
+                            @if (p.HasNonPayment)
+                            {
+                                <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-triangle"></i> NP</span>
+                            }
+                        </td>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@p.Id" class="btn btn-sm btn-outline-primary py-0 px-2"><i class="bi bi-eye"></i></a>
+                            <a asp-action="Edit" asp-route-id="@p.Id" class="btn btn-sm btn-outline-secondary py-0 px-2"><i class="bi bi-pencil"></i></a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    @if ((int)ViewBag.TotalPages > 1)
+    {
+        <div class="card-footer bg-white">
+            <nav>
+                <ul class="pagination pagination-sm mb-0 justify-content-center">
+                    @for (int i = 1; i <= (int)ViewBag.TotalPages; i++)
+                    {
+                        <li class="page-item @(i == (int)ViewBag.Page ? "active" : "")">
+                            <a class="page-link" asp-action="Index" asp-route-page="@i" asp-route-search="@ViewBag.Search" asp-route-category="@ViewBag.Category">@i</a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        </div>
+    }
+</div>

@@ -1,49 +1,177 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - DentalBusinessCenter</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/DentalBusinessCenter.styles.css" asp-append-version="true" />
+    <title>@ViewData["Title"] - Dental Business Center</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <style>
+        :root {
+            --sidebar-width: 250px;
+            --sidebar-bg: #0d1b2a;
+            --sidebar-hover: #1e3a5f;
+            --accent: #1a78c2;
+            --accent-light: #e8f4fd;
+        }
+        body { background: #f0f4f8; font-family: 'Segoe UI', sans-serif; }
+        #sidebar {
+            position: fixed; top: 0; left: 0; width: var(--sidebar-width);
+            height: 100vh; background: var(--sidebar-bg);
+            display: flex; flex-direction: column; z-index: 1000;
+            transition: transform 0.3s;
+        }
+        .sidebar-brand {
+            padding: 1.25rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.1);
+            color: #fff; text-decoration: none;
+        }
+        .sidebar-brand i { color: #5bc8f5; font-size: 1.4rem; }
+        .sidebar-brand .brand-text { font-size: 0.95rem; font-weight: 700; line-height: 1.2; }
+        .sidebar-brand .brand-sub { font-size: 0.7rem; color: #aac; }
+        .sidebar-nav { flex: 1; overflow-y: auto; padding: 1rem 0; }
+        .sidebar-nav .nav-section { font-size: 0.65rem; text-transform: uppercase; color: #6b7fa3; padding: 0.5rem 1rem 0.25rem; letter-spacing: 0.08em; }
+        .sidebar-nav a.nav-link {
+            color: #b0c4de; padding: 0.55rem 1rem; display: flex; align-items: center; gap: 0.6rem;
+            border-radius: 0; transition: all 0.2s; font-size: 0.88rem;
+        }
+        .sidebar-nav a.nav-link:hover, .sidebar-nav a.nav-link.active {
+            background: var(--sidebar-hover); color: #fff; padding-left: 1.25rem;
+        }
+        .sidebar-nav a.nav-link i { width: 18px; text-align: center; font-size: 1rem; }
+        .sidebar-footer { padding: 1rem; border-top: 1px solid rgba(255,255,255,0.1); }
+        #main-wrapper { margin-left: var(--sidebar-width); display: flex; flex-direction: column; min-height: 100vh; }
+        .top-navbar {
+            background: #fff; border-bottom: 1px solid #dee2e6;
+            padding: 0.5rem 1.5rem; display: flex; align-items: center;
+            justify-content: space-between; position: sticky; top: 0; z-index: 900;
+        }
+        .main-content { padding: 1.5rem; flex: 1; }
+        .card { border: none; box-shadow: 0 1px 4px rgba(0,0,0,0.08); border-radius: 0.5rem; }
+        .stat-card { border-radius: 0.5rem; padding: 1.25rem; color: #fff; }
+        .stat-card .stat-icon { font-size: 2rem; opacity: 0.8; }
+        .stat-card .stat-value { font-size: 1.9rem; font-weight: 700; }
+        .stat-card .stat-label { font-size: 0.82rem; opacity: 0.9; }
+        .badge-role-admin { background: #dc3545; color: #fff; }
+        .badge-role-doctor { background: #0d6efd; color: #fff; }
+        .badge-role-receptionist { background: #198754; color: #fff; }
+        footer.main-footer { background: #fff; border-top: 1px solid #dee2e6; padding: 0.75rem 1.5rem; font-size: 0.8rem; color: #6c757d; }
+        @@media (max-width: 767px) {
+            #sidebar { transform: translateX(-100%); }
+            #sidebar.show { transform: translateX(0); }
+            #main-wrapper { margin-left: 0; }
+        }
+    </style>
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">DentalBusinessCenter</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
+@{
+    var userRole = Context.Session.GetString("UserRole") ?? "";
+    var userFullName = Context.Session.GetString("UserFullName") ?? "";
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+}
+<div id="sidebar">
+    <a class="sidebar-brand d-flex align-items-center gap-2" href="#">
+        <i class="bi bi-hospital"></i>
+        <div>
+            <div class="brand-text">Dental Business</div>
+            <div class="brand-sub">Center</div>
+        </div>
+    </a>
+    <nav class="sidebar-nav">
+        <div class="nav-section">Main</div>
+        <a class="nav-link @(currentController == "Dashboard" ? "active" : "")" asp-controller="Dashboard" asp-action="Index">
+            <i class="bi bi-speedometer2"></i> Dashboard
+        </a>
+        <div class="nav-section">Patients</div>
+        <a class="nav-link @(currentController == "Patient" ? "active" : "")" asp-controller="Patient" asp-action="Index">
+            <i class="bi bi-people"></i> Patient Registry
+        </a>
+        <div class="nav-section">Medical Staff</div>
+        <a class="nav-link @(currentController == "Doctor" ? "active" : "")" asp-controller="Doctor" asp-action="Index">
+            <i class="bi bi-person-badge"></i> Doctors
+        </a>
+        <div class="nav-section">Scheduling</div>
+        <a class="nav-link @(currentController == "Appointment" && currentAction == "Index" ? "active" : "")" asp-controller="Appointment" asp-action="Index">
+            <i class="bi bi-calendar3"></i> Monthly Calendar
+        </a>
+        <a class="nav-link @(currentController == "Appointment" && currentAction == "Daily" ? "active" : "")" asp-controller="Appointment" asp-action="Daily">
+            <i class="bi bi-calendar-day"></i> Daily Schedule
+        </a>
+        <a class="nav-link @(currentController == "Appointment" && currentAction == "Create" ? "active" : "")" asp-controller="Appointment" asp-action="Create">
+            <i class="bi bi-calendar-plus"></i> Book Appointment
+        </a>
+        <a class="nav-link @(currentController == "Appointment" && currentAction == "NonPayment" ? "active" : "")" asp-controller="Appointment" asp-action="NonPayment">
+            <i class="bi bi-exclamation-triangle"></i> Non-Payment Alerts
+        </a>
+        @if (userRole == "Admin" || userRole == "Receptionist")
+        {
+            <div class="nav-section">Reports</div>
+            <a class="nav-link @(currentController == "Report" && currentAction == "PatientAnalytics" ? "active" : "")" asp-controller="Report" asp-action="PatientAnalytics">
+                <i class="bi bi-graph-up"></i> Patient Analytics
+            </a>
+            <a class="nav-link @(currentController == "Report" && currentAction == "DoctorPerformance" ? "active" : "")" asp-controller="Report" asp-action="DoctorPerformance">
+                <i class="bi bi-bar-chart"></i> Doctor Performance
+            </a>
+            <a class="nav-link @(currentController == "Report" && currentAction == "RoomOccupancy" ? "active" : "")" asp-controller="Report" asp-action="RoomOccupancy">
+                <i class="bi bi-building"></i> Room Occupancy
+            </a>
+        }
+        @if (userRole == "Admin")
+        {
+            <div class="nav-section">Administration</div>
+            <a class="nav-link" href="#">
+                <i class="bi bi-people-fill"></i> User Management
+            </a>
+        }
+    </nav>
+    <div class="sidebar-footer">
+        <small class="text-secondary" style="font-size:0.7rem;">v1.0.0 &bull; DBC System</small>
+    </div>
+</div>
+
+<div id="main-wrapper">
+    <div class="top-navbar">
+        <div class="d-flex align-items-center gap-2">
+            <button class="btn btn-sm btn-light d-md-none" id="sidebarToggle"><i class="bi bi-list"></i></button>
+            <nav aria-label="breadcrumb" class="mb-0">
+                <ol class="breadcrumb mb-0 small">
+                    <li class="breadcrumb-item"><a href="#" class="text-decoration-none"><i class="bi bi-house"></i></a></li>
+                    @if (!string.IsNullOrEmpty(currentController) && currentController != "Dashboard")
+                    {
+                        <li class="breadcrumb-item">@currentController</li>
+                    }
+                    @if (!string.IsNullOrEmpty(currentAction) && currentAction != "Index")
+                    {
+                        <li class="breadcrumb-item active">@currentAction</li>
+                    }
+                </ol>
+            </nav>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <span class="badge @(userRole == "Admin" ? "badge-role-admin" : userRole == "Doctor" ? "badge-role-doctor" : "badge-role-receptionist") px-2 py-1">@userRole</span>
+            <span class="fw-semibold small">@userFullName</span>
+            <a asp-controller="Account" asp-action="Logout" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-box-arrow-right"></i> Logout
+            </a>
+        </div>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - DentalBusinessCenter - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
+    <div class="main-content">
+        @RenderBody()
+    </div>
+
+    <footer class="main-footer text-center">
+        Dental Business Center &copy; 2025 &mdash; All Rights Reserved
     </footer>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    @await RenderSectionAsync("Scripts", required: false)
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+    document.getElementById('sidebarToggle')?.addEventListener('click', () => {
+        document.getElementById('sidebar').classList.toggle('show');
+    });
+</script>
+@await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

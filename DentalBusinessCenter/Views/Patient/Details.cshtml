@@ -1,0 +1,150 @@
+@using DentalBusinessCenter.Models
+@model Patient
+@{
+    ViewData["Title"] = "Patient: " + Model.FullNameEn;
+    var doctors = ViewBag.Doctors as List<Doctor>;
+    var visits = ViewBag.Visits as List<PatientVisit>;
+    var appointments = ViewBag.Appointments as List<Appointment>;
+    var catBadge = Model.Category switch {
+        "VIP" => "bg-warning text-dark",
+        "OR" => "bg-danger",
+        "Pedo" => "bg-info text-dark",
+        "Hygienist" => "bg-success",
+        _ => "bg-secondary"
+    };
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="fw-bold mb-0"><i class="bi bi-person-circle me-2 text-primary"></i>Patient Profile</h4>
+    <div class="d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning btn-sm"><i class="bi bi-pencil me-1"></i>Edit</a>
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Back</a>
+    </div>
+</div>
+
+<!-- Header Card -->
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="d-flex align-items-center gap-3">
+            <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold" style="width:64px;height:64px;font-size:1.4rem;">
+                @Model.FullNameEn.Substring(0,1).ToUpper()
+            </div>
+            <div class="flex-grow-1">
+                <h5 class="mb-0 fw-bold">@Model.FullNameEn</h5>
+                <div class="text-muted" dir="rtl">@Model.FullNameAr</div>
+                <div class="d-flex gap-2 mt-1 flex-wrap">
+                    <span class="badge @catBadge">@Model.Category</span>
+                    <span class="badge bg-light text-dark border">PRS: @Model.PrsNumber</span>
+                    <span class="badge bg-light text-dark border">QM: @Model.QuadraMedNumber</span>
+                    @if (Model.HasNonPayment)
+                    {
+                        <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-triangle me-1"></i>Non-Payment</span>
+                    }
+                </div>
+            </div>
+            <div class="text-end">
+                <div class="small text-muted">First Visit</div>
+                <div class="fw-semibold">@Model.DateOfFirstVisit.ToString("dd MMM yyyy")</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<ul class="nav nav-tabs mb-3" id="patientTabs">
+    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#profile"><i class="bi bi-person me-1"></i>Profile</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#visits"><i class="bi bi-clipboard2-pulse me-1"></i>Visit History (@(visits?.Count ?? 0))</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#appts"><i class="bi bi-calendar3 me-1"></i>Appointments (@(appointments?.Count ?? 0))</a></li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade show active" id="profile">
+        <div class="card">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3"><div class="text-muted small">Gender</div><div class="fw-semibold">@Model.Gender</div></div>
+                    <div class="col-md-3"><div class="text-muted small">Date of Birth</div><div class="fw-semibold">@Model.DateOfBirth.ToString("dd MMM yyyy")</div></div>
+                    <div class="col-md-3"><div class="text-muted small">Nationality</div><div class="fw-semibold">@Model.Nationality</div></div>
+                    <div class="col-md-3"><div class="text-muted small">National ID</div><div class="fw-semibold">@Model.NationalId</div></div>
+                    <div class="col-md-3"><div class="text-muted small">Mobile</div><div class="fw-semibold">@Model.Mobile</div></div>
+                    <div class="col-md-3"><div class="text-muted small">Email</div><div class="fw-semibold">@(string.IsNullOrEmpty(Model.Email) ? "—" : Model.Email)</div></div>
+                    <div class="col-md-6">
+                        <div class="text-muted small">Assigned Doctors</div>
+                        <div class="d-flex flex-wrap gap-1 mt-1">
+                            @foreach (var did in Model.AssignedDoctorIds.Split(','))
+                            {
+                                var doc = doctors?.FirstOrDefault(d => d.Id.ToString() == did.Trim());
+                                if (doc != null)
+                                {
+                                    <span class="badge bg-primary">@doc.FullName</span>
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="tab-pane fade" id="visits">
+        <div class="card">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr><th>Visit Date</th><th>Doctor</th><th>Treatment</th><th>Next Visit</th><th>Next Treatment</th></tr>
+                    </thead>
+                    <tbody>
+                        @if (visits != null && visits.Count > 0)
+                        {
+                            @foreach (var v in visits)
+                            {
+                                var doc = doctors?.FirstOrDefault(d => d.Id == v.DoctorId);
+                                <tr>
+                                    <td class="small">@v.VisitDate.ToString("dd MMM yyyy")</td>
+                                    <td class="small">@(doc?.FullName ?? "Unknown")</td>
+                                    <td class="small">@v.Treatment</td>
+                                    <td class="small">@(v.NextVisitDate?.ToString("dd MMM yyyy") ?? "—")</td>
+                                    <td class="small">@(string.IsNullOrEmpty(v.NextTreatment) ? "—" : v.NextTreatment)</td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr><td colspan="5" class="text-center text-muted py-3">No visit history</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="tab-pane fade" id="appts">
+        <div class="card">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr><th>Date</th><th>Time</th><th>Doctor</th><th>Room</th><th>Status</th></tr>
+                    </thead>
+                    <tbody>
+                        @if (appointments != null && appointments.Count > 0)
+                        {
+                            @foreach (var a in appointments)
+                            {
+                                var doc = doctors?.FirstOrDefault(d => d.Id == a.DoctorId);
+                                var badge = a.Status == "Scheduled" ? "bg-primary" : a.Status == "Completed" ? "bg-success" : "bg-secondary";
+                                <tr>
+                                    <td class="small">@a.AppointmentDate.ToString("dd MMM yyyy")</td>
+                                    <td class="small">@a.TimeSlot</td>
+                                    <td class="small">@(doc?.FullName ?? "Unknown")</td>
+                                    <td class="small">@a.Room</td>
+                                    <td><span class="badge @badge">@a.Status</span></td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr><td colspan="5" class="text-center text-muted py-3">No appointments</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

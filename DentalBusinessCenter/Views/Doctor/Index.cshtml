@@ -1,0 +1,40 @@
+@using DentalBusinessCenter.Models
+@model List<Doctor>
+@{
+    ViewData["Title"] = "Doctor Directory";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="fw-bold mb-0"><i class="bi bi-person-badge me-2 text-primary"></i>Doctor Directory</h4>
+    <span class="badge bg-primary">@Model.Count Doctors</span>
+</div>
+
+<div class="row g-3">
+    @foreach (var d in Model)
+    {
+        var clinicBadge = d.ClinicType switch {
+            "OR" => "bg-danger",
+            "Pedo" => "bg-info text-dark",
+            _ => "bg-primary"
+        };
+        var roomIcon = d.AssignedRoom.StartsWith("VIP") ? "bi-star-fill text-warning" : d.AssignedRoom == "OR" ? "bi-scissors text-danger" : "bi-door-open text-secondary";
+        <div class="col-md-4 col-lg-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold mx-auto mb-2" style="width:56px;height:56px;font-size:1.2rem;">
+                        @d.FullName.Split(' ').Skip(1).FirstOrDefault()?.Substring(0,1).ToUpper()
+                    </div>
+                    <h6 class="fw-bold mb-1">@d.FullName</h6>
+                    <div class="text-muted small mb-2">@d.Specialty</div>
+                    <div class="d-flex justify-content-center gap-1 mb-2">
+                        <span class="badge @clinicBadge">@d.ClinicType</span>
+                        <span class="badge bg-light text-dark border"><i class="bi @roomIcon me-1"></i>@d.AssignedRoom</span>
+                    </div>
+                    <a asp-action="Details" asp-route-id="@d.Id" class="btn btn-sm btn-outline-primary w-100">
+                        <i class="bi bi-people me-1"></i>View Patients
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+</div>

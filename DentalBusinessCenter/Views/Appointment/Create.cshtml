@@ -1,0 +1,101 @@
+@using DentalBusinessCenter.Models
+@model Appointment
+@{
+    ViewData["Title"] = "Book Appointment";
+    var patients = ViewBag.Patients as List<Patient>;
+    var doctors = ViewBag.Doctors as List<Doctor>;
+    var rooms = ViewBag.Rooms as string[];
+    var slots = ViewBag.Slots as List<string>;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="fw-bold mb-0"><i class="bi bi-calendar-plus me-2 text-primary"></i>Book Appointment</h4>
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Back</a>
+</div>
+
+<div class="card" style="max-width:700px;">
+    <div class="card-body">
+        <form method="post">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label small fw-semibold">Patient *</label>
+                    <select name="PatientId" class="form-select form-select-sm" required>
+                        <option value="">Select Patient...</option>
+                        @if (patients != null)
+                        {
+                            @foreach (var p in patients)
+                            {
+                                <option value="@p.Id">@p.FullNameEn (@p.PrsNumber)</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-semibold">Doctor *</label>
+                    <select name="DoctorId" class="form-select form-select-sm" required>
+                        <option value="">Select Doctor...</option>
+                        @if (doctors != null)
+                        {
+                            @foreach (var d in doctors)
+                            {
+                                <option value="@d.Id">@d.FullName — @d.AssignedRoom</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold">Date *</label>
+                    <input type="date" name="AppointmentDate" class="form-control form-control-sm" value="@Model.AppointmentDate.ToString("yyyy-MM-dd")" required />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold">Time Slot *</label>
+                    <select name="TimeSlot" class="form-select form-select-sm" required>
+                        @if (slots != null)
+                        {
+                            @foreach (var s in slots)
+                            {
+                                <option value="@s">@s</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold">Room</label>
+                    <select name="Room" class="form-select form-select-sm">
+                        @if (rooms != null)
+                        {
+                            @foreach (var r in rooms)
+                            {
+                                <option value="@r">@r</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-semibold">Status</label>
+                    <select name="Status" class="form-select form-select-sm">
+                        <option value="Scheduled">Scheduled</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div class="col-md-6 d-flex align-items-end">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="NonPaymentFlag" value="true" id="npFlag" />
+                        <label class="form-check-label small fw-semibold text-warning" for="npFlag">
+                            <i class="bi bi-exclamation-triangle me-1"></i>Non-Payment Flag
+                        </label>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <label class="form-label small fw-semibold">Notes</label>
+                    <textarea name="Notes" class="form-control form-control-sm" rows="3" placeholder="Optional notes..."></textarea>
+                </div>
+            </div>
+            <div class="d-flex gap-2 mt-3">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Book Appointment</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>

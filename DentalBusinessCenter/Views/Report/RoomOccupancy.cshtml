@@ -1,0 +1,70 @@
+@{
+    ViewData["Title"] = "Room Occupancy";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="fw-bold mb-0"><i class="bi bi-building me-2 text-primary"></i>Room Occupancy</h4>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header bg-white fw-semibold"><i class="bi bi-bar-chart me-2 text-primary"></i>Room Usage (Current Month)</div>
+            <div class="card-body">
+                <canvas id="roomChart" height="280"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-header bg-white fw-semibold"><i class="bi bi-table me-2 text-secondary"></i>Occupancy Summary</div>
+            <div class="table-responsive">
+                <table class="table table-hover table-sm mb-0">
+                    <thead class="table-light">
+                        <tr><th>Room</th><th>Used</th><th>Total Slots</th><th>Occupancy</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in ViewBag.RoomData)
+                        {
+                            var pct = item.Pct;
+                            var barColor = pct >= 75 ? "bg-danger" : pct >= 50 ? "bg-warning" : "bg-success";
+                            <tr>
+                                <td class="small fw-semibold">@item.Room</td>
+                                <td class="small">@item.Used</td>
+                                <td class="small">@item.Total</td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-1">
+                                        <div class="progress flex-grow-1" style="height:8px;">
+                                            <div class="progress-bar @barColor" style="width:@(pct)%"></div>
+                                        </div>
+                                        <span class="small">@(pct)%</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    const roomLabels = @Html.Raw(ViewBag.RoomLabels);
+    const roomUsed = @Html.Raw(ViewBag.RoomUsed);
+    new Chart(document.getElementById('roomChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: roomLabels,
+            datasets: [{
+                label: 'Appointments Used',
+                data: roomUsed,
+                backgroundColor: ['#1a78c2','#198754','#ffc107','#dc3545','#0dcaf0','#6f42c1','#fd7e14','#20c997'],
+                borderRadius: 6
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+    });
+</script>
+}

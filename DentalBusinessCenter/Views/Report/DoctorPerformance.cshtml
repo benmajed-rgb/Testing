@@ -1,0 +1,70 @@
+@{
+    ViewData["Title"] = "Doctor Performance";
+    var doctorData = ViewBag.DoctorData as dynamic;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="fw-bold mb-0"><i class="bi bi-bar-chart me-2 text-primary"></i>Doctor Performance</h4>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header bg-white fw-semibold"><i class="bi bi-bar-chart-horizontal me-2 text-primary"></i>Appointments per Doctor</div>
+            <div class="card-body">
+                <canvas id="docChart" height="320"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header bg-white fw-semibold"><i class="bi bi-table me-2 text-secondary"></i>Performance Summary</div>
+            <div class="table-responsive">
+                <table class="table table-hover table-sm mb-0">
+                    <thead class="table-light">
+                        <tr><th>Doctor</th><th>Patients</th><th>This Month</th><th>Total</th><th>Rate</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in ViewBag.DoctorData)
+                        {
+                            int completed = item.CompletedAppts;
+                            int total = item.TotalAppts;
+                            int rate = total > 0 ? (int)Math.Round((double)completed / total * 100) : 0;
+                            var rateColor = rate >= 75 ? "bg-success" : rate >= 50 ? "bg-warning" : "bg-danger";
+                            <tr>
+                                <td class="small fw-semibold">@item.Doctor.FullName</td>
+                                <td class="small">@item.TotalPatients</td>
+                                <td class="small">@item.MonthlyAppts</td>
+                                <td class="small">@item.TotalAppts</td>
+                                <td><span class="badge @rateColor">@rate%</span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    new Chart(document.getElementById('docChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: @Html.Raw(ViewBag.DoctorLabels),
+            datasets: [{
+                label: 'Total Appointments',
+                data: @Html.Raw(ViewBag.ApptCounts),
+                backgroundColor: 'rgba(26,120,194,0.8)',
+                borderRadius: 4
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { x: { beginAtZero: true } }
+        }
+    });
+</script>
+}

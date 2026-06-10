@@ -1,0 +1,97 @@
+@using DentalBusinessCenter.Models
+@{
+    ViewData["Title"] = "Monthly Calendar";
+    int year = ViewBag.Year;
+    int month = ViewBag.Month;
+    int firstDow = ViewBag.FirstDayOfWeek;
+    int daysInMonth = ViewBag.DaysInMonth;
+    var appointments = ViewBag.Appointments as List<Appointment>;
+    var patients = ViewBag.Patients as List<Patient>;
+    var doctors = ViewBag.Doctors as List<Doctor>;
+
+    var prevMonth = month == 1 ? 12 : month - 1;
+    var prevYear = month == 1 ? year - 1 : year;
+    var nextMonth = month == 12 ? 1 : month + 1;
+    var nextYear = month == 12 ? year + 1 : year;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="fw-bold mb-0"><i class="bi bi-calendar3 me-2 text-primary"></i>Monthly Calendar</h4>
+    <div class="d-flex align-items-center gap-2">
+        <a asp-action="Index" asp-route-year="@prevYear" asp-route-month="@prevMonth" class="btn btn-sm btn-outline-secondary"><i class="bi bi-chevron-left"></i></a>
+        <span class="fw-bold fs-5">@ViewBag.MonthName</span>
+        <a asp-action="Index" asp-route-year="@nextYear" asp-route-month="@nextMonth" class="btn btn-sm btn-outline-secondary"><i class="bi bi-chevron-right"></i></a>
+        <a asp-action="Create" class="btn btn-sm btn-primary ms-2"><i class="bi bi-plus-lg me-1"></i>Book</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-2">
+        <div class="row g-0 text-center mb-1">
+            @foreach (var day in new[] { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" })
+            {
+                <div class="col fw-bold text-muted small py-1 border-bottom">@day</div>
+            }
+        </div>
+        <div class="row g-0" id="calendarGrid">
+            @{
+                int cellIndex = 0;
+                // Empty cells before first day
+                for (int e = 0; e < firstDow; e++)
+                {
+                    <div class="col border bg-light" style="min-height:90px;"></div>
+                    cellIndex++;
+                }
+                for (int d = 1; d <= daysInMonth; d++)
+                {
+                    var date = new DateTime(year, month, d);
+                    var dayAppts = appointments?.Where(a => a.AppointmentDate.Day == d).ToList() ?? new List<Appointment>();
+                    var isToday = date.Date == DateTime.Today;
+                    var isWeekend = date.DayOfWeek == DayOfWeek.Friday || date.DayOfWeek == DayOfWeek.Saturday;
+                    <div class="col border @(isToday ? "border-primary" : "") @(isWeekend ? "bg-light" : "")" style="min-height:90px; padding:4px;">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <span class="@(isToday ? "badge bg-primary" : "text-muted small fw-semibold")">@d</span>
+                            @if (dayAppts.Count > 0)
+                            {
+                                <span class="badge bg-secondary" style="font-size:0.65rem;">@dayAppts.Count</span>
+                            }
+                        </div>
+                        @foreach (var a in dayAppts.Take(3))
+                        {
+                            var pat = patients?.FirstOrDefault(p => p.Id == a.PatientId);
+                            var apptColor = a.Status == "Completed" ? "bg-success" : a.Status == "Cancelled" ? "bg-secondary" : "bg-primary";
+                            <a asp-action="Daily" asp-route-date="@date.ToString("yyyy-MM-dd")" class="text-decoration-none">
+                                <div class="badge @apptColor w-100 text-start mb-1" style="font-size:0.65rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                                    @a.TimeSlot @(pat?.FullNameEn.Split(' ').FirstOrDefault() ?? "?")
+                                </div>
+                            </a>
+                        }
+                        @if (dayAppts.Count > 3)
+                        {
+                            <div class="text-muted" style="font-size:0.65rem;">+@(dayAppts.Count - 3) more</div>
+                        }
+                    </div>
+                    cellIndex++;
+                    if (cellIndex % 7 == 0 && d < daysInMonth)
+                    {
+                        @:</div><div class="row g-0">
+                    }
+                }
+                // Fill remaining
+                int remaining = 7 - (cellIndex % 7);
+                if (remaining < 7)
+                {
+                    for (int r = 0; r < remaining; r++)
+                    {
+                        <div class="col border bg-light" style="min-height:90px;"></div>
+                    }
+                }
+            }
+        </div>
+    </div>
+</div>
+<div class="mt-2 d-flex gap-2 small">
+    <span class="badge bg-primary">Scheduled</span>
+    <span class="badge bg-success">Completed</span>
+    <span class="badge bg-secondary">Cancelled</span>
+</div>

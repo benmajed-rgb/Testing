@@ -1,0 +1,56 @@
+@{
+    ViewData["Title"] = "Patient Analytics";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="fw-bold mb-0"><i class="bi bi-graph-up me-2 text-primary"></i>Patient Analytics</h4>
+    <span class="badge bg-primary fs-6">@ViewBag.TotalPatients Total Patients</span>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header bg-white fw-semibold"><i class="bi bi-graph-up me-2 text-primary"></i>Patient Registrations (Last 12 Months)</div>
+            <div class="card-body">
+                <canvas id="regChart" height="260"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header bg-white fw-semibold"><i class="bi bi-pie-chart me-2 text-success"></i>Patients by Category</div>
+            <div class="card-body">
+                <canvas id="catChart" height="260"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    new Chart(document.getElementById('regChart').getContext('2d'), {
+        type: 'line',
+        data: {
+            labels: @Html.Raw(ViewBag.MonthLabels),
+            datasets: [{
+                label: 'New Patients',
+                data: @Html.Raw(ViewBag.MonthCounts),
+                fill: true,
+                borderColor: '#1a78c2',
+                backgroundColor: 'rgba(26,120,194,0.15)',
+                tension: 0.4,
+                pointRadius: 4
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+    });
+    new Chart(document.getElementById('catChart').getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: @Html.Raw(ViewBag.CategoryLabels),
+            datasets: [{ data: @Html.Raw(ViewBag.CategoryCounts), backgroundColor: ['#1a78c2','#ffc107','#0dcaf0','#dc3545','#198754'] }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+    });
+</script>
+}
